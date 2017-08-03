@@ -435,10 +435,14 @@ def test_app_file_based_secret(secret_fixture):
     host = tasks[0]['host']
     # The secret by default is saved in $MESOS_SANDBOX/.secrets/path/to/secret
     cmd = "curl {}:{}/{}_file".format(host, port, secret_container_path)
-    status, data = shakedown.run_command_on_master(cmd)
+    
+    @retrying.retry(stop_max_attempt_number=30, retry_on_exception=common.ignore_exception)
+    def value_check():
+        status, data = shakedown.run_command_on_master(cmd)
+        assert status, "{} did not succeed".format(cmd)
+        assert data.rstrip() == secret_value
 
-    assert status, "{} did not succeed".format(cmd)
-    assert data == secret_value
+    value_check()
 
 
 @dcos_1_9
