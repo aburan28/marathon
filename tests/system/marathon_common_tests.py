@@ -493,7 +493,7 @@ def test_health_check_unhealthy():
     client = marathon.create_client()
     app_def = python_http_app()
     health_list = []
-    health_list.append(health_check('/bad-url', failures=0, timeout=0))
+    health_list.append(health_check('/bad-url', failures=0, timeout=1))
     app_def['id'] = 'unhealthy'
     app_def['healthChecks'] = health_list
 
