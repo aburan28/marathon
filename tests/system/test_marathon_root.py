@@ -482,10 +482,14 @@ def test_app_secret_env_var(secret_fixture):
     port = tasks[0]['ports'][0]
     host = tasks[0]['host']
     cmd = "curl {}:{}/secret-env".format(host, port)
-    status, data = shakedown.run_command_on_master(cmd)
 
-    assert status, "{} did not succeed".format(cmd)
-    assert data.rstrip() == secret_value
+    @retrying.retry(stop_max_attempt_number=30, retry_on_exception=common.ignore_exception)
+    def value_check():
+        status, data = shakedown.run_command_on_master(cmd)
+        assert status, "{} did not succeed".format(cmd)
+        assert data.rstrip() == secret_value
+
+    value_check()
 
 
 @pytest.mark.skip('need: https://github.com/mesosphere/dcos-enterprise/pull/1124')
